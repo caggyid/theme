@@ -162,17 +162,47 @@ code, pre, kbd { border-radius: 6px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--cs-cyan-deep); }
 
 /* ---------- Logo 16:9 di login / lupa password / reset password ----------
-   logo-glass.png = logo dengan latar transparan, jadi tidak ada kotak gelap di atas kaca/GIF. */
+   logo-glass.png = logo dengan latar transparan, jadi tidak ada kotak gelap di atas kaca/GIF.
+   Form panel adalah flex row; tanpa wrap, logo menjadi kolom di samping kartu dan form terjepit.
+   Dengan wrap + flex-basis 100%, logo berdiri sendiri di baris atas, kartu di baris bawah. */
+form:has(input[name="username"]),
+form:has(input[name="email"]),
+form:has(input[name="password_confirmation"]) {
+  flex-wrap: wrap;
+}
 form:has(input[name="username"])::before,
 form:has(input[name="email"])::before,
 form:has(input[name="password_confirmation"])::before {
   content: "";
   display: block;
+  flex: 0 0 100%;
   width: 100%;
+  max-width: 340px;
+  margin: 0 auto 1rem;
   aspect-ratio: 16 / 9;
-  margin-bottom: 1rem;
   background: url("/themes/caggyshop/logo-glass.png") center / contain no-repeat;
   filter: drop-shadow(0 4px 18px rgba(34, 211, 238, .25));
+}
+
+/* Label di dalam kartu login: warna panel terlalu gelap di atas kaca */
+form:has(input[name="username"]) label,
+form:has(input[name="email"]) label,
+form:has(input[name="password_confirmation"]) label {
+  color: var(--cs-muted) !important;
+}
+
+/* Tombol utama login: cyan seperti sebelumnya (bawaan panel biru) */
+form:has(input[name="username"]) button[type="submit"],
+form:has(input[name="email"]) button[type="submit"],
+form:has(input[name="password_confirmation"]) button[type="submit"] {
+  background-color: var(--cs-cyan) !important;
+  border-color: transparent !important;
+  color: #04202a !important;
+}
+form:has(input[name="username"]) button[type="submit"]:hover:not(:disabled),
+form:has(input[name="email"]) button[type="submit"]:hover:not(:disabled),
+form:has(input[name="password_confirmation"]) button[type="submit"]:hover:not(:disabled) {
+  background-color: #67e3f5 !important;
 }
 
 /* ---------- Aksesibilitas & performa ---------- */
