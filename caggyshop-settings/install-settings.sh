@@ -43,31 +43,29 @@ CLS="\\${NS}\\Http\\Controllers\\Admin\\CaggyThemeController"
   echo "// caggytheme:end"
 } >> "$ROUTES"
 
-# 4) Menu di sidebar admin: sisipkan sebelum </ul> penutup sidebar-menu (hanya jika belum ada)
-if ! grep -q 'caggytheme-menu:start' "$LAYOUT"; then
-  ITEM="$(cat <<'BLADE'
-<li class="{{ \Illuminate\Support\Str::startsWith(Route::currentRouteName() ?? '', 'admin.caggytheme') ? 'active' : '' }}">
+# 4) Menu di sidebar admin: buang blok lama (jika ada), lalu sisipkan sebelum </ul> penutup sidebar-menu
+sed -i '\|caggytheme-menu:start|,\|caggytheme-menu:end|d' "$LAYOUT"
+export ITEM="$(cat <<'BLADE'
+<li class="{{ request()->routeIs('admin.caggytheme*') ? 'active' : '' }}">
     <a href="{{ route('admin.caggytheme') }}">
         <i class="fa fa-paint-brush"></i> <span>Theme CaggyShop</span>
     </a>
 </li>
 BLADE
 )"
-  if awk -v item="$ITEM" '
-      /sidebar-menu/ { insb = 1 }
-      insb && !done && /<\/ul>/ { print "{{-- caggytheme-menu:start --}}"; print item; print "{{-- caggytheme-menu:end --}}"; done = 1 }
-      { print }
-      END { if (!done) exit 3 }
-    ' "$LAYOUT" > "$LAYOUT.tmp"; then
-    cat "$LAYOUT.tmp" > "$LAYOUT"
-  else
-    echo "PERINGATAN: sidebar admin tidak ditemukan di layouts/admin.blade.php (versi panel berbeda?)."
-    echo "            Menu tidak dipasang; halaman tetap bisa dibuka di /admin/caggytheme."
-  fi
-  rm -f "$LAYOUT.tmp"
+# ITEM dibaca lewat ENVIRON (bukan awk -v) supaya tanda backslash tidak dimakan awk
+if awk '
+    /sidebar-menu/ { insb = 1 }
+    insb && !done && /<\/ul>/ { print "{{-- caggytheme-menu:start --}}"; print ENVIRON["ITEM"]; print "{{-- caggytheme-menu:end --}}"; done = 1 }
+    { print }
+    END { if (!done) exit 3 }
+  ' "$LAYOUT" > "$LAYOUT.tmp"; then
+  cat "$LAYOUT.tmp" > "$LAYOUT"
 else
-  echo "Menu admin sudah terpasang."
+  echo "PERINGATAN: sidebar admin tidak ditemukan di layouts/admin.blade.php (versi panel berbeda?)."
+  echo "            Menu tidak dipasang; halaman tetap bisa dibuka di /admin/caggytheme."
 fi
+rm -f "$LAYOUT.tmp"
 
 # 5) Berkas pengaturan awal + folder unggahan (tidak menimpa yang sudah ada)
 mkdir -p "$THEME/uploads"
