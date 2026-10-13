@@ -10,6 +10,14 @@
   --cs-bg: #070d12;            /* warna cadangan saat GIF belum termuat */
   --cs-dim: .44;               /* kegelapan lapisan di atas GIF (0 = tanpa, 1 = hitam). Naikkan jika teks sulit dibaca */
 
+  /* Logo (navbar + halaman login). Bisa diganti dari Admin > Theme CaggyShop */
+  --cs-logo-image: url("/themes/caggyshop/logo-glass.png");
+
+  /* Navbar kiri + widget Discord */
+  --cs-nav-w: 252px;           /* lebar navbar kiri (desktop) */
+  --cs-nav-gap: 14px;          /* jarak navbar ke tepi layar */
+  --cs-dc: #8b95ff;            /* warna aksen tombol Discord */
+
   /* Kaca */
   --cs-glass: rgba(10, 20, 28, .46);
   --cs-glass-inner: rgba(255, 255, 255, .045);
@@ -182,7 +190,7 @@ form:has(input[name="password_confirmation"])::before {
   max-width: 340px;
   margin: 0 auto 1rem;
   aspect-ratio: 16 / 9;
-  background: url("/themes/caggyshop/logo-glass.png") center / contain no-repeat;
+  background: var(--cs-logo-image) center / contain no-repeat;
   filter: drop-shadow(0 4px 18px rgba(34, 211, 238, .25));
 }
 
@@ -229,7 +237,7 @@ form:has(input[name="password_confirmation"]) button[type="submit"]:hover:not(:d
   height: 40px;
   font-size: 0 !important;
   color: transparent !important;
-  background: url("/themes/caggyshop/logo-glass.png") left center / contain no-repeat;
+  background: var(--cs-logo-image) left center / contain no-repeat;
 }
 
 /* ---------- Font ----------
@@ -293,4 +301,210 @@ body *:not(.xterm):not(.xterm *):not(pre):not(pre *):not(code):not(code *):not(k
   [data-cs-icon] + * > * { white-space: normal !important; overflow-wrap: anywhere; text-overflow: clip; height: auto !important; }
   [data-cs-icon] + * > :first-child { font-size: .7rem !important; line-height: 1.2 !important; }
   [data-cs-icon] + * > :last-child { font-size: .98rem !important; line-height: 1.45 !important; }
+}
+
+/* ======================================================================
+   Navbar kiri (desktop) - tetap glassmorphism
+   Navbar panel = elemen yang membungkus #logo. Dipilih dengan :has() (tanpa JS) karena
+   kelas panel di-hash. Di layar <= 768px navbar kembali ke bar atas bawaan (tetap berkaca).
+   Ubah lebar lewat --cs-nav-w di :root.
+   ====================================================================== */
+@media (min-width: 769px) {
+  /* Kotak navbar: melayang di kiri, sudut membulat, kaca + blur */
+  div:has(> div > #logo) {
+    position: fixed !important;
+    top: var(--cs-nav-gap);
+    bottom: var(--cs-nav-gap);
+    left: var(--cs-nav-gap);
+    width: var(--cs-nav-w);
+    height: auto !important;
+    z-index: 40;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background-color: var(--cs-glass) !important;
+    -webkit-backdrop-filter: blur(var(--cs-blur)) saturate(170%);
+    backdrop-filter: blur(var(--cs-blur)) saturate(170%);
+    border: 1px solid var(--cs-glass-line) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 10px 36px rgba(0, 0, 0, .38), inset 0 1px 0 var(--cs-glass-shine) !important;
+  }
+
+  /* Isi navbar jadi kolom vertikal (gaya inline bawaan: max-width 1200px, tinggi 3.5rem) */
+  div:has(> div > #logo) > div:has(> #logo) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 100%;
+    margin: 0 !important;
+    padding: 20px 12px !important;
+    box-sizing: border-box;
+  }
+  /* Sisakan ruang di bawah untuk tombol Discord */
+  body:has(#cs-dc-btn) div:has(> div > #logo) > div:has(> #logo) { padding-bottom: 82px !important; }
+
+  /* Logo di atas, dipisah garis */
+  div:has(> div > #logo) #logo {
+    flex: 0 0 auto !important;
+    width: 100%;
+    padding: 0 6px 16px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--cs-line);
+  }
+  div:has(> div > #logo) #logo a {
+    width: 100%;
+    height: 92px;
+    background-position: center;
+  }
+
+  /* Daftar menu */
+  #logo + div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    flex: 1 1 auto !important;
+    height: auto !important;
+    width: 100%;
+    gap: 6px;
+  }
+  #logo + div > a,
+  #logo + div > button {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 14px;
+    width: 100%;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: transparent !important;
+    color: var(--cs-muted) !important;
+    font-size: .98rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+  }
+  #logo + div > a > svg,
+  #logo + div > button > svg { width: 1.15rem !important; height: 1.15rem !important; flex: none; }
+  /* Teks menu: label diberi oleh glass.js (atribut data-cs-label) */
+  #logo + div > a::after,
+  #logo + div > button::after { content: attr(data-cs-label); }
+
+  #logo + div > a:hover,
+  #logo + div > button:hover {
+    background: rgba(255, 255, 255, .09) !important;
+    border-color: var(--cs-glass-line);
+    color: var(--cs-text) !important;
+  }
+  #logo + div > a.active {
+    background: linear-gradient(135deg, rgba(34, 211, 238, .22), rgba(34, 211, 238, .05)) !important;
+    border-color: rgba(34, 211, 238, .34);
+    color: var(--cs-cyan) !important;
+    box-shadow: 0 0 18px rgba(34, 211, 238, .14), inset 0 1px 0 rgba(255, 255, 255, .14) !important;
+  }
+  /* "Keluar" selalu di dasar navbar */
+  #logo + div > button:last-child { margin-top: auto !important; }
+
+  /* Konten bergeser ke kanan sebesar navbar */
+  #app:has(#logo) { padding-left: calc(var(--cs-nav-w) + var(--cs-nav-gap) * 2); }
+}
+
+@media (max-width: 768px) {
+  div:has(> div > #logo) { border-radius: 0 !important; border-width: 0 0 1px 0 !important; }
+}
+
+/* ======================================================================
+   Widget Discord (diatur dari Admin > Theme CaggyShop; dibuat oleh glass.js)
+   ====================================================================== */
+#cs-dc-btn {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 999px;
+  color: var(--cs-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--cs-dc) 22%, rgba(10, 20, 28, .5));
+  border: 1px solid color-mix(in srgb, var(--cs-dc) 48%, transparent);
+  -webkit-backdrop-filter: blur(var(--cs-blur)) saturate(170%);
+  backdrop-filter: blur(var(--cs-blur)) saturate(170%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .38), 0 0 18px color-mix(in srgb, var(--cs-dc) 26%, transparent), inset 0 1px 0 rgba(255, 255, 255, .22);
+  transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+}
+#cs-dc-btn:hover { background: color-mix(in srgb, var(--cs-dc) 34%, rgba(10, 20, 28, .5)); transform: translateY(-1px); }
+#cs-dc-btn svg { width: 22px; height: 22px; flex: none; color: var(--cs-dc); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cs-dc) 70%, transparent)); }
+#cs-dc-btn .cs-dc-label, #cs-dc-btn .cs-dc-count { display: none; }
+
+.cs-dc-count { align-items: center; gap: 6px; font-size: .8rem; font-weight: 500; color: var(--cs-muted); }
+.cs-dc-count::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399; }
+
+#cs-dc-panel {
+  position: fixed;
+  right: 12px;
+  bottom: 74px;
+  z-index: 46;
+  display: none;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 28px);
+  overflow: hidden;
+  border-radius: var(--cs-radius);
+  background-color: var(--cs-glass);
+  -webkit-backdrop-filter: blur(var(--cs-blur)) saturate(170%);
+  backdrop-filter: blur(var(--cs-blur)) saturate(170%);
+  border: 1px solid var(--cs-glass-line);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, .5), inset 0 1px 0 var(--cs-glass-shine);
+}
+#cs-dc-panel[data-open] { display: flex; animation: cs-dc-in .18s ease-out; }
+@keyframes cs-dc-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#cs-dc-panel .cs-dc-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; border-bottom: 1px solid var(--cs-line); font-weight: 600; }
+#cs-dc-panel .cs-dc-head .cs-dc-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#cs-dc-panel .cs-dc-head .cs-dc-count { display: flex; }
+#cs-dc-panel .cs-dc-close {
+  flex: none; width: 30px; height: 30px; min-height: 0 !important; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; background: transparent; color: var(--cs-muted); font-size: 20px; line-height: 1; cursor: pointer;
+}
+#cs-dc-panel .cs-dc-close:hover { background: rgba(255, 255, 255, .1); color: var(--cs-text); }
+#cs-dc-panel iframe { display: block; width: 100%; height: min(500px, 62vh); border: 0; background: #1e1f22; }
+#cs-dc-panel .cs-dc-join {
+  display: block; margin: 10px 12px 12px; padding: 10px 14px; text-align: center; text-decoration: none;
+  border-radius: 10px; font-weight: 600; color: #fff !important;
+  background: color-mix(in srgb, var(--cs-dc) 70%, #1b1f4b);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+#cs-dc-panel .cs-dc-join:hover { background: color-mix(in srgb, var(--cs-dc) 85%, #1b1f4b); }
+
+/* Desktop dengan navbar kiri: tombol melebar di dasar navbar, panel muncul di kanannya */
+@media (min-width: 769px) {
+  body:has(#logo) #cs-dc-btn {
+    right: auto;
+    left: calc(var(--cs-nav-gap) + 12px);
+    bottom: calc(var(--cs-nav-gap) + 12px);
+    width: calc(var(--cs-nav-w) - 24px);
+    justify-content: flex-start;
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+  body:has(#logo) #cs-dc-btn .cs-dc-label { display: block; flex: 1 1 auto; text-align: left; }
+  body:has(#logo) #cs-dc-btn .cs-dc-count { display: flex; }
+  body:has(#logo) #cs-dc-panel {
+    right: auto;
+    left: calc(var(--cs-nav-w) + var(--cs-nav-gap) * 2);
+    bottom: var(--cs-nav-gap);
+  }
 }
