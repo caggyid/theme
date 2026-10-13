@@ -218,3 +218,14 @@ form:has(input[name="password_confirmation"]) button[type="submit"]:hover:not(:d
   :root { --cs-blur: 10px; }
   button, [role="button"] { min-height: 40px; }
 }
+
+/* ---------- Logo di navbar (gantikan tulisan "Pterodactyl") ----------
+   Atur width/height sesuai selera. Ganti nama file di url() kalau mau logo lain. */
+#logo a {
+  display: block;
+  width: 150px;
+  height: 40px;
+  font-size: 0 !important;
+  color: transparent !important;
+  background: url("/themes/caggyshop/logo-glass.png") left center / contain no-repeat;
+}
