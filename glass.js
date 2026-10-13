@@ -2,7 +2,8 @@
    Panel Pterodactyl memakai class CSS yang di-hash, jadi tidak bisa dipilih lewat CSS biasa.
    Script ini hanya MEMBACA warna latar elemen; jika elemen berupa kartu gelap yang cukup besar,
    ia diberi atribut data-cs-glass supaya caggyshop.css bisa membuatnya berkaca.
-   Tidak mengubah DOM selain atribut itu, tidak mengirim data apa pun ke luar. */
+   Selain itu, kotak ikon kartu statistik (Address, Uptime, CPU, dst.) diberi atribut data-cs-icon
+   supaya CSS bisa mengganti ikonnya. Tidak mengubah DOM selain atribut, tidak mengirim data ke luar. */
 (function () {
   if (window.__csGlass) return;
   window.__csGlass = true;
@@ -23,10 +24,25 @@
     return Math.max(r, g, b) < 115 && (Math.max(r, g, b) - Math.min(r, g, b)) < 70;
   }
 
+  // Kotak ikon kartu statistik: <div><svg/></div> yang induknya memuat label pendek (Address, Uptime, ...)
+  var ICONS = [['inbound', 'down'], ['outbound', 'up'], ['address', 'net'], ['uptime', 'time'], ['cpu', 'cpu'], ['memory', 'mem'], ['disk', 'disk']];
+  function iconify(el) {
+    if (el.tagName !== 'DIV' || el.children.length !== 1 || el.firstElementChild.tagName.toLowerCase() !== 'svg') return false;
+    var p = el.parentElement;
+    if (!p) return false;
+    var t = (p.textContent || '').toLowerCase();
+    if (t.length > 90) return false;
+    for (var i = 0; i < ICONS.length; i++) {
+      if (t.indexOf(ICONS[i][0]) !== -1) { el.setAttribute('data-cs-icon', ICONS[i][1]); return true; }
+    }
+    return false;
+  }
+
   function inspect(el) {
     if (seen.has(el) || el.nodeType !== 1 || !TAGS[el.tagName]) return;
     seen.add(el);
     if (el.closest('.xterm') || el.id === 'app') return;
+    if (iconify(el)) return;
 
     var rect = el.getBoundingClientRect();
     if (rect.width < 140 || rect.height < 36) return;                           // badge, tombol kecil, ikon

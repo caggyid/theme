@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 /* CaggyShop - Pterodactyl theme (cyan glassmorphism + anime GIF background)
    Layout/posisi/display panel tidak diubah: hanya warna, kaca (blur), border, radius, fokus, scrollbar.
 
@@ -24,6 +25,7 @@
   --cs-muted: #9bb3c0;
   --cs-cyan: #22d3ee;
   --cs-cyan-deep: #0891b2;
+  --cs-font: 'Outfit', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
 
@@ -229,3 +231,45 @@ form:has(input[name="password_confirmation"]) button[type="submit"]:hover:not(:d
   color: transparent !important;
   background: url("/themes/caggyshop/logo-glass.png") left center / contain no-repeat;
 }
+
+/* ---------- Font ----------
+   Ganti font: ubah nama di @import paling atas + variabel --cs-font di :root.
+   Console, editor kode, <pre>/<code> sengaja tidak disentuh (tetap monospace). */
+html, body { font-family: var(--cs-font); }
+body *:not(.xterm):not(.xterm *):not(pre):not(pre *):not(code):not(code *):not(kbd):not(.CodeMirror):not(.CodeMirror *):not([class*="cm-"]):not([class*="cm-"] *) {
+  font-family: var(--cs-font) !important;
+  font-variant-numeric: tabular-nums;
+}
+#logo a { font-weight: 700; letter-spacing: .01em; }
+
+/* ---------- Ikon kartu statistik (Address, Uptime, CPU, Memory, Disk, Network) ----------
+   glass.js hanya memberi atribut data-cs-icon pada kotak ikon; ikon aslinya disembunyikan
+   dan diganti ikon garis modern (mask) dengan warna aksen per jenis. */
+[data-cs-icon] {
+  --ic: var(--cs-cyan);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, .08) !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--ic) 34%, transparent), color-mix(in srgb, var(--ic) 8%, transparent)) !important;
+  border: 1px solid color-mix(in srgb, var(--ic) 38%, transparent) !important;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--ic) 22%, transparent), inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+}
+[data-cs-icon] > svg { display: none !important; }
+[data-cs-icon]::before {
+  content: "";
+  width: 24px;
+  height: 24px;
+  background-color: var(--ic);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ic) 70%, transparent));
+  -webkit-mask: var(--ic-img) center / contain no-repeat;
+  mask: var(--ic-img) center / contain no-repeat;
+}
+[data-cs-icon="net"] { --ic: #22d3ee; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E"); }
+[data-cs-icon="time"] { --ic: #34d399; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E"); }
+[data-cs-icon="cpu"] { --ic: #a78bfa; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='2'/%3E%3Crect x='9' y='9' width='6' height='6' rx='1'/%3E%3Cpath d='M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2'/%3E%3C/svg%3E"); }
+[data-cs-icon="mem"] { --ic: #fbbf24; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='6' width='20' height='10' rx='2'/%3E%3Cpath d='M6 16v3M10 16v3M14 16v3M18 16v3M6 10v2M10 10v2M14 10v2M18 10v2'/%3E%3C/svg%3E"); }
+[data-cs-icon="disk"] { --ic: #fb7185; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12H2'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3Cpath d='M6 16h.01M10 16h.01'/%3E%3C/svg%3E"); }
+[data-cs-icon="down"] { --ic: #38bdf8; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cpath d='M12 15V3'/%3E%3C/svg%3E"); }
+[data-cs-icon="up"] { --ic: #f472b6; --ic-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='17 8 12 3 7 8'/%3E%3Cpath d='M12 3v12'/%3E%3C/svg%3E"); }
