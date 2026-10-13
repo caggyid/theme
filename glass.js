@@ -3,7 +3,8 @@
    Script ini hanya MEMBACA warna latar elemen; jika elemen berupa kartu gelap yang cukup besar,
    ia diberi atribut data-cs-glass supaya caggyshop.css bisa membuatnya berkaca.
    Selain itu, kotak ikon kartu statistik (Address, Uptime, CPU, dst.) diberi atribut data-cs-icon
-   supaya CSS bisa mengganti ikonnya. Tidak mengubah DOM selain atribut, tidak mengirim data ke luar. */
+   supaya CSS bisa mengganti ikonnya. Di halaman console server, ia juga menambahkan satu kartu "Masa Aktif"
+   (data dari panel sendiri, paket caggyshop-expiry). Tidak ada data yang dikirim ke luar panel. */
 (function () {
   if (window.__csGlass) return;
   window.__csGlass = true;
@@ -25,7 +26,7 @@
   }
 
   // Kotak ikon kartu statistik: <div><svg/></div> yang induknya memuat label pendek (Address, Uptime, ...)
-  var ICONS = [['inbound', 'down'], ['outbound', 'up'], ['address', 'net'], ['uptime', 'time'], ['cpu', 'cpu'], ['memory', 'mem'], ['disk', 'disk']];
+  var ICONS = [['inbound', 'down'], ['outbound', 'up'], ['address', 'net'], ['uptime', 'time'], ['cpu', 'cpu'], ['memory', 'mem'], ['disk', 'disk'], ['masa aktif', 'exp']];
   function iconify(el) {
     if (el.tagName !== 'DIV' || el.children.length !== 1 || el.firstElementChild.tagName.toLowerCase() !== 'svg') return false;
     var p = el.parentElement;
@@ -36,6 +37,84 @@
       if (t.indexOf(ICONS[i][0]) !== -1) { el.setAttribute('data-cs-icon', ICONS[i][1]); return true; }
     }
     return false;
+  }
+
+  // ---- Kartu "Masa Aktif" di console server ----
+  // Mengambil masa expired dari /api/client/servers/{id}/caggy-expiry (paket caggyshop-expiry),
+  // lalu menyalin satu kartu statistik bawaan dan mengganti teksnya. Jika endpoint tidak ada /
+  // server tidak punya expired, tidak ada yang ditambahkan.
+  var exp = { id: null, data: undefined, at: 0, pending: false };
+  var expTimer = 0;
+
+  function serverId() {
+    var m = /^\/server\/([0-9a-f]{8})(\/|$)/i.exec(location.pathname);
+    return m ? m[1] : null;
+  }
+
+  function fmtLeft(ms) {
+    if (ms <= 0) return { text: 'Expired', state: 'danger' };
+    var min = Math.floor(ms / 60000);
+    if (min < 60) return { text: Math.max(1, min) + ' menit lagi', state: 'danger' };
+    var hr = Math.floor(min / 60);
+    if (hr < 48) return { text: hr + ' jam lagi', state: 'warn' };
+    var d = Math.ceil(ms / 86400000);
+    return { text: d + ' hari lagi', state: d <= 7 ? 'warn' : 'ok' };
+  }
+
+  function renderExpiry(id, grid, src, d) {
+    var at = new Date(d.expires_at);
+    if (isNaN(at.getTime())) return;
+    var left = fmtLeft(at.getTime() - Date.now());
+    var clone = src.cloneNode(true);
+    clone.setAttribute('data-cs-expiry', id);
+    clone.setAttribute('data-cs-state', left.state);
+    var icon = clone.querySelector('[data-cs-icon]');
+    if (icon) icon.setAttribute('data-cs-icon', 'exp');
+    var leaves = [], all = clone.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var n = all[i];
+      if (!n.children.length && n.textContent.trim() && !n.closest('svg')) leaves.push(n);
+    }
+    if (leaves.length < 2) return;
+    var dateTxt;
+    try { dateTxt = at.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { dateTxt = at.toDateString(); }
+    leaves[0].textContent = 'Expired \u00b7 ' + dateTxt;
+    leaves[1].textContent = left.text;
+    leaves[1].setAttribute('data-cs-expiry-value', '');
+    try { clone.title = 'Expired: ' + at.toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }); } catch (e) {}
+    grid.appendChild(clone);
+  }
+
+  function ensureExpiry() {
+    var id = serverId();
+    if (!id) return;
+    var src = (document.querySelector('[data-cs-icon="down"]') || document.querySelector('[data-cs-icon="up"]') || {}).parentElement;
+    if (!src || !src.parentElement) return;
+    var grid = src.parentElement;
+
+    var have = grid.querySelector('[data-cs-expiry]');
+    if (have) {
+      if (have.getAttribute('data-cs-expiry') === id) return;   // sudah benar
+      have.parentNode.removeChild(have);                         // pindah server: buang kartu lama
+    }
+    if (exp.id === id && exp.data !== undefined && Date.now() - exp.at < 60000) {
+      if (exp.data) renderExpiry(id, grid, src, exp.data);
+      return;
+    }
+    if (exp.pending) return;
+    exp.pending = true;
+    fetch('/api/client/servers/' + id + '/caggy-expiry', {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { exp = { id: id, data: (d && d.expires_at) ? d : null, at: Date.now(), pending: false }; scheduleExpiry(); })
+      .catch(function () { exp = { id: id, data: null, at: Date.now(), pending: false }; });
+  }
+
+  function scheduleExpiry() {
+    if (expTimer) return;
+    expTimer = setTimeout(function () { expTimer = 0; ensureExpiry(); }, 400);
   }
 
   function inspect(el) {
@@ -61,7 +140,7 @@
     scheduled = false;
     var n = 0;
     while (queue.length && n < 300) { inspect(queue.shift()); n++; }  // irisan kecil agar UI tidak tersendat
-    if (queue.length) schedule();
+    if (queue.length) schedule(); else scheduleExpiry();
   }
   function schedule() {
     if (scheduled) return;
@@ -79,11 +158,13 @@
 
   function start() {
     enqueue(document.body);
+    scheduleExpiry();
     new MutationObserver(function (list) {
       for (var i = 0; i < list.length; i++) {
         var added = list[i].addedNodes;
         for (var j = 0; j < added.length; j++) enqueue(added[j]);
       }
+      scheduleExpiry();
     }).observe(document.body, { childList: true, subtree: true });
   }
 

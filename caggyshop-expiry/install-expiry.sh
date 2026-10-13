@@ -9,11 +9,13 @@ CRON_DIR="${CRON_DIR:-/etc/cron.d}"
 
 DETAILS="$PANEL/resources/views/admin/servers/view/details.blade.php"
 ROUTES="$PANEL/routes/admin.php"
+API_ROUTES="$PANEL/routes/api-client.php"
+CCTRL="$PANEL/app/Http/Controllers/Api/Client/CaggyExpiryClientController.php"
 PARTIAL="$PANEL/resources/views/admin/servers/partials/caggy-expiry.blade.php"
 CTRL="$PANEL/app/Http/Controllers/Admin/CaggyExpiryController.php"
 DEST="$PANEL/caggyshop-expiry"
 
-for f in "$PANEL/artisan" "$DETAILS" "$ROUTES" "$PANEL/app/Models/Server.php"; do
+for f in "$PANEL/artisan" "$DETAILS" "$ROUTES" "$API_ROUTES" "$PANEL/app/Models/Server.php"; do
   [ -f "$f" ] || { echo "File tidak ditemukan: $f"; exit 1; }
 done
 OWNER="$(stat -c %U "$PANEL/artisan")"
@@ -25,11 +27,14 @@ runphp() { if [ "$(id -u)" = 0 ] && [ "$OWNER" != root ]; then runuser -u "$OWNE
 # 1) Backup sekali saja
 [ -f "$DETAILS.caggyshop-expiry.bak" ] || cp "$DETAILS" "$DETAILS.caggyshop-expiry.bak"
 [ -f "$ROUTES.caggyshop-expiry.bak" ]  || cp "$ROUTES" "$ROUTES.caggyshop-expiry.bak"
+[ -f "$API_ROUTES.caggyshop-expiry.bak" ] || cp "$API_ROUTES" "$API_ROUTES.caggyshop-expiry.bak"
 
 # 2) Controller + partial view
 cp "$DIR/CaggyExpiryController.php" "$CTRL"
 [ "$NS" = "Pterodactyl" ] || sed -i "s/Pterodactyl\\\\/${NS}\\\\/g" "$CTRL"
 cp "$DIR/caggy-expiry.blade.php" "$PARTIAL"
+cp "$DIR/CaggyExpiryClientController.php" "$CCTRL"
+[ "$NS" = "Pterodactyl" ] || sed -i "s/Pterodactyl\\\\/${NS}\\\\/g" "$CCTRL"
 
 # 3) details.blade.php: sisipkan @include tepat sebelum @endsection penutup section 'content'
 if ! grep -q 'caggyshop-expiry:start' "$DETAILS"; then
@@ -56,11 +61,21 @@ CLS="\\${NS}\\Http\\Controllers\\Admin\\CaggyExpiryController"
   echo "// caggyshop-expiry:end"
 } >> "$ROUTES"
 
+# 4b) routes/api-client.php: endpoint kecil untuk menampilkan expired di console pengguna
+sed -i -z 's|\n*// caggyshop-expiry:start.*// caggyshop-expiry:end\n*|\n|' "$API_ROUTES"
+CCLS="\\${NS}\\Http\\Controllers\\Api\\Client\\CaggyExpiryClientController"
+{
+  echo ""
+  echo "// caggyshop-expiry:start"
+  echo "Route::get('/servers/{identifier}/caggy-expiry', [${CCLS}::class, 'show']);"
+  echo "// caggyshop-expiry:end"
+} >> "$API_ROUTES"
+
 # 5) Skrip CLI + tabel + cron
 mkdir -p "$DEST"
 cp "$DIR/expiry.php" "$DEST/expiry.php"
 if [ "$(id -u)" = 0 ]; then
-  chown "$OWNER": "$CTRL" "$PARTIAL" "$DETAILS" "$ROUTES" 2>/dev/null || true
+  chown "$OWNER": "$CTRL" "$CCTRL" "$PARTIAL" "$DETAILS" "$ROUTES" "$API_ROUTES" 2>/dev/null || true
   chown -R "$OWNER": "$DEST"
 fi
 runphp "$DEST/expiry.php" install
