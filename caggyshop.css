@@ -73,16 +73,45 @@ code, pre, kbd { border-radius: 4px; }
 *::-webkit-scrollbar-thumb { background: var(--cs-line); border-radius: 8px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--cs-cyan-deep); }
 
-/* Logo 16:9 di halaman login, lupa password, dan reset password */
-form:has(input[name="username"])::before,
-form:has(input[name="email"])::before,
-form:has(input[name="password_confirmation"])::before {
+/* Halaman login / lupa password / reset password.
+   Logo 16:9 ditaruh di dalam judul (h2), bukan di dalam form, supaya layout
+   kartu bawaan panel tidak bergeser. Kalau struktur panel berbeda, selector
+   tidak cocok dan logo tidak tampil (tidak merusak apa pun). */
+h2:has(~ form input[name="username"])::before,
+h2:has(~ form input[name="email"])::before,
+h2:has(~ form input[name="password_confirmation"])::before {
   content: "";
   display: block;
-  width: 100%;
+  width: min(100%, 360px);
   aspect-ratio: 16 / 9;
-  margin-bottom: 1rem;
+  margin: 0 auto .25rem;
   background: url("/themes/caggyshop/logo-16x9-small.png") center / contain no-repeat;
+}
+
+/* Kartu login: gelap, hanya warna (tanpa ubah layout) */
+form:has(input[name="username"]) > div,
+form:has(input[name="email"]) > div,
+form:has(input[name="password_confirmation"]) > div {
+  background-color: var(--cs-surface) !important;
+  border: 1px solid var(--cs-line);
+}
+form:has(input[name="username"]) label,
+form:has(input[name="email"]) label,
+form:has(input[name="password_confirmation"]) label {
+  color: var(--cs-muted) !important;
+}
+form:has(input[name="username"]) button[type="submit"],
+form:has(input[name="email"]) button[type="submit"],
+form:has(input[name="password_confirmation"]) button[type="submit"] {
+  background-color: var(--cs-cyan) !important;
+  border-color: var(--cs-cyan) !important;
+  color: var(--cs-bg) !important;
+}
+form:has(input[name="username"]) button[type="submit"]:hover,
+form:has(input[name="email"]) button[type="submit"]:hover,
+form:has(input[name="password_confirmation"]) button[type="submit"]:hover {
+  background-color: #67e8f9 !important;
+  border-color: #67e8f9 !important;
 }
 
 /* Hormati pengguna yang mematikan animasi */
