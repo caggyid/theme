@@ -1,0 +1,96 @@
+/* CaggyShop - Pterodactyl theme (cyan dark)
+   Hanya mengubah warna, border, radius, fokus, scrollbar.
+   Tidak menyentuh layout/posisi/display supaya panel tidak rusak. */
+
+:root {
+  --cs-bg: #070d12;
+  --cs-surface: #0d171e;
+  --cs-raised: #13222c;
+  --cs-line: #1e3441;
+  --cs-text: #dbe8ee;
+  --cs-muted: #7c97a5;
+  --cs-cyan: #22d3ee;
+  --cs-cyan-deep: #0891b2;
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: var(--cs-bg) !important;
+  color: var(--cs-text);
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+#app { min-height: 100vh; background-color: var(--cs-bg); }
+
+::selection { background: var(--cs-cyan); color: var(--cs-bg); }
+
+/* Link */
+a { transition: color .15s ease; }
+a:hover { color: var(--cs-cyan); }
+
+/* Form */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea,
+select {
+  background-color: var(--cs-surface) !important;
+  border-color: var(--cs-line) !important;
+  color: var(--cs-text) !important;
+  border-radius: 6px;
+  font-size: 16px; /* cegah zoom otomatis di iOS */
+}
+input::placeholder, textarea::placeholder { color: var(--cs-muted); opacity: .8; }
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--cs-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, .22) !important;
+  outline: none;
+}
+input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--cs-cyan); }
+
+/* Tombol: fokus keyboard tetap terlihat */
+button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--cs-cyan);
+  outline-offset: 2px;
+}
+button { transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+button:disabled { cursor: not-allowed; }
+
+/* Tabel & pemisah */
+table { border-color: var(--cs-line); }
+th, td { border-color: var(--cs-line); }
+hr { border-color: var(--cs-line); }
+
+/* Kode & console */
+code, pre, kbd { border-radius: 4px; }
+.xterm, .xterm-viewport { background-color: #04090d !important; }
+.xterm-viewport::-webkit-scrollbar { width: 8px; }
+
+/* Scrollbar */
+* { scrollbar-width: thin; scrollbar-color: var(--cs-line) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--cs-line); border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--cs-cyan-deep); }
+
+/* Logo 16:9 di halaman login, lupa password, dan reset password */
+form:has(input[name="username"])::before,
+form:has(input[name="email"])::before,
+form:has(input[name="password_confirmation"])::before {
+  content: "";
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 1rem;
+  background: url("/themes/caggyshop/logo-16x9-small.png") center / contain no-repeat;
+}
+
+/* Hormati pengguna yang mematikan animasi */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Mobile: area sentuh lebih nyaman, tanpa mengubah layout */
+@media (max-width: 640px) {
+  button, [role="button"] { min-height: 40px; }
+}
